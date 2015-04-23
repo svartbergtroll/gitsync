@@ -33,6 +33,7 @@ if __name__ == "__main__":
     repositories = config['repositories']
     for r in repositories:
         repo_dict = repositories[r]
+        updated = False
         print "Syncing %s" % repo_dict['url']
         if not os.path.exists(repo_dict['destination']):
             try:
@@ -41,8 +42,8 @@ if __name__ == "__main__":
                 print "%s" % str(exce)
                 continue
             
-            print "Cloning repository"
             repo = git.Repo.clone_from(repo_dict['url'], repo_dict['destination'])
+            updated = True
         
         # If it exists, update it
         repo = git.Repo(repo_dict['destination'])
@@ -52,12 +53,13 @@ if __name__ == "__main__":
         local_ref = repo.head.commit
         
         if repo.is_dirty():
+            updated = True
             repo.head.reset(index=True, working_tree=True)
             
         if local_ref != remote_ref:
-            print "Commit mismatch, updating repository"
+            updated = True
             repo.remotes.origin.pull()
-            print local_ref.hexsha[:10], '->', remote_ref.hexsha[:10]
-        else:
-            print "Repository up to date !"
+            
+        if updated:
+            print "Updated to revision", remote_ref.hexsha[:10]
         
