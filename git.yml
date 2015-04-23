@@ -1,0 +1,5 @@
+repositories:
+    test:
+        url: /home/thomas/gittest
+        branch: prod
+        destination: /home/thomas/synchrogit/repos/test
