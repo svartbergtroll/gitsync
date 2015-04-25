@@ -1,8 +1,0 @@
-repositories:
-    test:
-        url: /home/thomas/gittest
-        branches:
-            prod:
-                destination: /home/thomas/repos/prod
-            master:
-                destination: /home/thomas/repos/master

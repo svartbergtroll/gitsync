@@ -51,11 +51,11 @@ if __name__ == "__main__":
                     repo = git.Repo.clone_from(repo_dict['url'], destination, branch=branch, single_branch=True)
                     cloned = True
                 except Exception as exce:
-                    print " Error, unable to clone repository : %s" % str(exce)
+                    print " ! Error, unable to clone repository : %s" % str(exce)
                     continue
             
             print " + Fetching update information"
-            # If it exists, update it
+            
             try:
                 repo = git.Repo(destination)
                 repo.remotes.origin.fetch()
@@ -66,10 +66,10 @@ if __name__ == "__main__":
             remote_ref = repo.remotes.origin.refs[branch].commit
             local_ref = repo.branches[branch].commit
             
-            print " - Remote is at %s" % remote_ref.hexsha[:10]
+            print " * Remote is at %s" % remote_ref.hexsha[:10]
             
             if repo.is_dirty():
-                print " + Local copy has changes, discarding them"
+                print " - Local copy has changes, discarding them"
                 try:
                     repo.head.reset(index=True, working_tree=True)
                     updated = True
@@ -86,10 +86,11 @@ if __name__ == "__main__":
                     print " ! Pull of remote copy failed : %s" % str(exce)
                     continue
             else:
-                print " - Local copy is in sync"
+                print " * Local copy is in sync at %s" % (local_ref.hexsha[:10])
                     
             if updated:
-                print " - Updated from %s to %s" % (local_ref.hexsha[:10], remote_ref.hexsha[:10])
+                print " * Updated from %s to %s (%s)" % (local_ref.hexsha[:10], remote_ref.hexsha[:10], remote_ref.summary)
+                
             if cloned:
-                print " - Cloned from %s" % (remote_ref.hexsha[:10])
+                print " * Cloned from %s (%s)" % (remote_ref.hexsha[:10], remote_ref.summary)
         
