@@ -34,36 +34,62 @@ if __name__ == "__main__":
     for r in repositories:
         repo_dict = repositories[r]
         branches = repo_dict['branches'].keys()
-        updated = False
         for branch in branches:
             print "Syncing %s:%s" % (repo_dict['url'], branch)
             destination = repo_dict['branches'][branch]['destination']
+            updated = False
+            cloned = False
             if not os.path.exists(destination):
+                print " + Destination directory non existant, creating it"
                 try:
                     os.makedirs(destination)
                 except OSError as exce:
                     print "%s" % str(exce)
                     continue
-                
-                repo = git.Repo.clone_from(repo_dict['url'], destination, branch=branch, single_branch=True)
-                updated = True
+                try:
+                    print " + Cloning the repository"
+                    repo = git.Repo.clone_from(repo_dict['url'], destination, branch=branch, single_branch=True)
+                    cloned = True
+                except Exception as exce:
+                    print " Error, unable to clone repository : %s" % str(exce)
+                    continue
             
+            print " + Fetching update information"
             # If it exists, update it
-            repo = git.Repo(destination)
+            try:
+                repo = git.Repo(destination)
+                repo.remotes.origin.fetch()
+            except Exception as exce:
+                print " ! Error, fetch failed : %s" % str(exce)
+                continue
             
-            repo.remotes.origin.fetch()
-                    
             remote_ref = repo.remotes.origin.refs[branch].commit
             local_ref = repo.branches[branch].commit
             
+            print " - Remote is at %s" % remote_ref.hexsha[:10]
+            
             if repo.is_dirty():
-                updated = True
-                repo.head.reset(index=True, working_tree=True)
-                
+                print " + Local copy has changes, discarding them"
+                try:
+                    repo.head.reset(index=True, working_tree=True)
+                    updated = True
+                except Exception as exce:
+                    print " ! Reset of local copy failed : %s" % str(exce)
+                    continue
+                    
             if local_ref != remote_ref:
-                updated = True
-                repo.remotes.origin.pull()
-                
+                print " * Local copy is out of date, pulling latest"
+                try:
+                    repo.remotes.origin.pull()
+                    updated = True
+                except Exception as exce:
+                    print " ! Pull of remote copy failed : %s" % str(exce)
+                    continue
+            else:
+                print " - Local copy is in sync"
+                    
             if updated:
-                print "Updated to revision", remote_ref.hexsha[:10]
+                print " - Updated from %s to %s" % (local_ref.hexsha[:10], remote_ref.hexsha[:10])
+            if cloned:
+                print " - Cloned from %s" % (remote_ref.hexsha[:10])
         
