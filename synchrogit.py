@@ -33,34 +33,37 @@ if __name__ == "__main__":
     repositories = config['repositories']
     for r in repositories:
         repo_dict = repositories[r]
+        branches = repo_dict['branches'].keys()
         updated = False
-        print "Syncing %s" % repo_dict['url']
-        if not os.path.exists(repo_dict['destination']):
-            try:
-                os.makedirs(repo_dict['destination'])
-            except OSError as exce:
-                print "%s" % str(exce)
-                continue
-            
-            repo = git.Repo.clone_from(repo_dict['url'], repo_dict['destination'], branch=repo_dict['branch'], single_branch=True)
-            updated = True
-        
-        # If it exists, update it
-        repo = git.Repo(repo_dict['destination'])
-        
-        repo.remotes.origin.fetch()
+        for branch in branches:
+            print "Syncing %s:%s" % (repo_dict['url'], branch)
+            destination = repo_dict['branches'][branch]['destination']
+            if not os.path.exists(destination):
+                try:
+                    os.makedirs(destination)
+                except OSError as exce:
+                    print "%s" % str(exce)
+                    continue
                 
-        remote_ref = repo.remotes.origin.refs[repo_dict['branch']].commit
-        local_ref = repo.branches[repo_dict['branch']].commit
-        
-        if repo.is_dirty():
-            updated = True
-            repo.head.reset(index=True, working_tree=True)
+                repo = git.Repo.clone_from(repo_dict['url'], destination, branch=branch, single_branch=True)
+                updated = True
             
-        if local_ref != remote_ref:
-            updated = True
-            repo.remotes.origin.pull()
+            # If it exists, update it
+            repo = git.Repo(destination)
             
-        if updated:
-            print "Updated to revision", remote_ref.hexsha[:10]
+            repo.remotes.origin.fetch()
+                    
+            remote_ref = repo.remotes.origin.refs[branch].commit
+            local_ref = repo.branches[branch].commit
+            
+            if repo.is_dirty():
+                updated = True
+                repo.head.reset(index=True, working_tree=True)
+                
+            if local_ref != remote_ref:
+                updated = True
+                repo.remotes.origin.pull()
+                
+            if updated:
+                print "Updated to revision", remote_ref.hexsha[:10]
         
