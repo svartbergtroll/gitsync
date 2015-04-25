@@ -42,15 +42,16 @@ if __name__ == "__main__":
                 print "%s" % str(exce)
                 continue
             
-            repo = git.Repo.clone_from(repo_dict['url'], repo_dict['destination'])
+            repo = git.Repo.clone_from(repo_dict['url'], repo_dict['destination'], branch=repo_dict['branch'], single_branch=True)
             updated = True
         
         # If it exists, update it
         repo = git.Repo(repo_dict['destination'])
+        
         repo.remotes.origin.fetch()
-        repo.git.checkout(repo_dict['branch'])
+                
         remote_ref = repo.remotes.origin.refs[repo_dict['branch']].commit
-        local_ref = repo.head.commit
+        local_ref = repo.branches[repo_dict['branch']].commit
         
         if repo.is_dirty():
             updated = True

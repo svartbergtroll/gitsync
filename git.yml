@@ -2,8 +2,4 @@ repositories:
     test:
         url: /home/thomas/gittest
         branch: prod
-        destination: /home/thomas/repos/test
-    heimdall:
-        url: https://github.com/svartbergtroll/heimdall
-        branch: master
-        destination: /home/thomas/repos/heimdall
+        destination: /home/thomas/repos/prod
