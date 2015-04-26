@@ -6,7 +6,12 @@ import os
 import git
 from docopt import docopt
 
-__doc__ = """synchrogit.py: Synchronizes git repositories
+__authors__  = "Thomas Maurice"
+__email__    = "thomas@maurice.fr"
+__version__  = "0.1a"
+__license__  = "GPL"
+__status__   = "Developement"
+__doc__      = """synchrogit.py: Synchronizes git repositories
 
 Usage:
     synchrogit.py [--config FILE]
