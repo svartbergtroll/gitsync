@@ -1,0 +1,18 @@
+# You have to declare everything into this root element
+repositories:
+    # Here we have a repo named "heimdall"
+    # The name is just for you to see what's going on
+    # It does not have any real incidence :)
+    heimdall:
+        # The url of the repo. Any valid git URL will do
+        # i.e. git://git@... provided your system knows
+        # where to find the approptiate ssh keys
+        url: https://github.com/svartbergtroll/heimdall
+        # Declare the branches you want to checkout here
+        branches:
+            # We want to check out the master branch
+            # To checkout "feature", just put "feature" ;)
+            master:
+                # Destination where the repository will be
+                # cloned !
+                destination: /home/thomas/repos/master

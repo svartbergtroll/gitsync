@@ -1,4 +1,4 @@
-# synchrogit.py
+# gitsync.py
 A simple script to synchronize Git repositories
 
 ## Developement information
@@ -48,7 +48,7 @@ If you called your config file `foo.yml` you have to invoke the
 script with
 
 ```
-./synchrogit.py -c foo.yml```
+./gitsync.py -c foo.yml```
 
 Note that by default, the script will look for a file named `git.yml`
 You should have the following output :
