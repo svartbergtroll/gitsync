@@ -126,6 +126,7 @@ class Repository(object):
             print "  * Local copy is out of date, pulling latest"
             try:
                 repo.remotes.origin.pull()
+                repo.head.reset(index=True, working_tree=True, commit=remote_ref)
             except Exception as exce:
                 print "  ! Pull of remote copy failed : %s" % str(exce)
                 raise
