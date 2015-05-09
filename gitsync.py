@@ -20,6 +20,11 @@ So that each branch benefits from it's own dedicated set of files and so on.
 import yaml
 import os
 import git
+import shlex
+import signal
+import pwd
+import time
+from subprocess import Popen, PIPE
 from docopt import docopt
 
 __authors__ = "Thomas Maurice"
@@ -52,6 +57,7 @@ class Repository(object):
         self.name = name
         self.url = repo_dict['url']
         self.branches = repo_dict['branches']
+        self.repo_dict = repo_dict
 
     def __str__(self):
         """Textual representation of the object"""
@@ -60,7 +66,8 @@ class Repository(object):
     def clone_branch(self, branch, destination):
         """clones the given branch
         
-        This function will clone the given branch to the given
+        This function will clone the given branch to == None:
+                    time.sleepthe given
         destination. If the given destination path does not exist
         it will be created. Upon fail exceptions may be raised.
         
@@ -80,9 +87,12 @@ class Repository(object):
                 raise
         # And now the cloning
         try:
-            print "  + Cloning the repository"
+            print "  + Cloning the repository in %s" % destination
             repo = git.Repo.clone_from(self.url, destination, branch=branch,
                 single_branch=True)
+            remote_ref = repo.remotes.origin.refs[branch].commit
+            self.run_post_clone(branch, remote_ref)
+            print  "  * Local copy at revision %s" % remote_ref.hexsha[:10]
         except Exception as exce:
             print "  ! Error, unable to clone repository : %s" % str(exce)
             raise
@@ -127,15 +137,108 @@ class Repository(object):
             try:
                 repo.remotes.origin.pull()
                 repo.head.reset(index=True, working_tree=True, commit=remote_ref)
+                self.run_post_update(branch, remote_ref)
             except Exception as exce:
                 print "  ! Pull of remote copy failed : %s" % str(exce)
                 raise
         else:
+            self.run_post_run(branch, remote_ref)
             print "  * Local copy is in sync at %s" % (local_ref.hexsha[:10])
         
         # Return success :)
         return True, local_ref, remote_ref
+    
+    def run_post_run(self, branch, remote):
+        """runs post run actions"""
+        if not 'post_run' in self.repo_dict['branches'][branch]:
+            return
+        
+        actions = self.repo_dict['branches'][branch]['post_run']
+        env = {
+            'destination': self.repo_dict['branches'][branch]['destination'],
+            'branch'     : branch,
+            'commit'     : remote.hexsha,
+        }
+        print "  - Running post run actions"
+        for action in actions:
+            self.run_action(action, env)
+    
+    def run_post_clone(self, branch, remote):
+        """runs post clone actions"""
+        if not 'post_clone' in self.repo_dict['branches'][branch]:
+            return
+        
+        actions = self.repo_dict['branches'][branch]['post_clone']
+        env = {
+            'destination': self.repo_dict['branches'][branch]['destination'],
+            'branch'     : branch,
+            'commit'     : remote.hexsha,
+        }
+        print "  - Running post clone actions"
+        for action in actions:
+            self.run_action(action, env)
+    
+    def run_post_update(self, branch, remote):
+        """runs post update actions"""
+        if not 'post_update' in self.repo_dict['branches'][branch]:
+            return
+            
+        actions = self.repo_dict['branches'][branch]['post_update']
+        env = {
+            'destination': self.repo_dict['branches'][branch]['destination'],
+            'branch'     : branch,
+            'commit'     : remote.hexsha,
+        }
+        print "  - Running post update actions"
+        for action in actions:
+            self.run_action(action, env)
+    
+    def run_action(self, action, env):
+        """run the specified action
+        
+        actions are a list of dictionaties. The action is for now either
+         * run
+         * kill
+         
+        The run command opens a subprocess and runs the command. The kill action
+        takes into input a pid file. Either relative or absolute. If the path
+        is relative, it will be relative (i.e. concatenated) with the base dir
+        we are working into.
+        """
+        try:
+            ac_type = action.keys()[0].format(**env)
+            ac = action.values()[0].format(**env)
+            print "  - Running action '%s %s'" % (ac_type, ac)
+            
+            # If the user wants to run a command
+            if ac_type == "run":
+                command = shlex.split(ac)
 
+                p = Popen(command, stdout=PIPE, stderr=PIPE,
+                    shell=False, cwd=env['destination'])
+                
+                while p.poll() == None:
+                    time.sleep(0.1)
+                    output = p.stdout.readlines()
+                    
+                    for l in output:
+                        print "    run:", l.replace('\n', '')
+
+            # If the user wants to kill a PID retrieved from a pidfile
+            elif ac_type == "kill":
+                if ac[0] != '/':
+                    ac = "{dest}/{ac}".format(dest=env['destination'], ac=ac)
+                pidfile = open(ac, 'r')
+                pid = int(pidfile.read())
+                pidfile.close()
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                    print "  * Kill signal sent to pid %s" % pid
+                except Exception as exce:
+                    print "  ! Kill failed %s" % str(exce)
+        except Exception as exce:
+            print " * Action failed : %s" % str(exce)
+    
     def branch_exists(self, destination):
         """Returns whereas a .git directory exists
         
@@ -163,6 +266,7 @@ if __name__ == "__main__":
     # pylint: disable=invalid-name
     args = docopt(__help__)
     config = {}
+    os.chdir('/tmp')
     try:
         print " - Parsing configuration file %s" % (args['--config'])
         conf_file = open(args['--config'], 'r')
@@ -182,5 +286,5 @@ if __name__ == "__main__":
         for bra in rep.branches:
             try:
                 rep.process_branch(bra)
-            except:
-                print " ! Failed to process branch %s" % bra
+            except Exception as e:
+                print " ! Failed to process branch %s : %s" % (bra, str(e))

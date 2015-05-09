@@ -1,3 +1,5 @@
+# Optional: Change the user running it
+user: thomas
 # You have to declare everything into this root element
 repositories:
     # Here we have a repo named "heimdall"
@@ -16,3 +18,9 @@ repositories:
                 # Destination where the repository will be
                 # cloned !
                 destination: /home/thomas/repos/master
+                post_update:
+                    - run: echo Post update :)
+                post_clone:
+                    - run: echo Post clone :)
+                post_run:
+                    - run: echo Post run :)
