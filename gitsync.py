@@ -5,7 +5,7 @@
 
 """gitsync.py
 
-This script provides a conveinient way to synchronize different git repos at
+This script provides a convenient way to synchronize different git repos at
 a given branch into a given environment.
 
 I personally developped it to keep my personnal website under version control,
@@ -32,10 +32,10 @@ __email__ = "thomas@maurice.fr"
 __version__ = "0.1a"
 __license__ = "GPL"
 __status__ = "Developement"
-__help__ = """synchrogit.py: Synchronizes git repositories
+__help__ = """gitsync.py: Synchronizes git repositories
 
 Usage:
-    synchrogit.py [--config FILE]
+    gitsync.py [--config FILE]
 
 Options:
     -c --config FILE        configuration file to use [default: git.yml]
@@ -266,6 +266,7 @@ if __name__ == "__main__":
     # pylint: disable=invalid-name
     args = docopt(__help__)
     config = {}
+    # To be sure to have rights. Otherwise Git could complain
     os.chdir('/tmp')
     try:
         print " - Parsing configuration file %s" % (args['--config'])
