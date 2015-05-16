@@ -77,7 +77,7 @@ repositories:
         # The url of the repo. Any valid git URL will do
         # i.e. git://git@... provided your system knows
         # where to find the approptiate ssh keys
-        url: https://github.com/svartbergtroll/heimdall
+        url: https://github.com/thomas-maurice/heimdall
         # Declare the branches you want to checkout here
         branches:
             # We want to check out the master branch
@@ -95,10 +95,12 @@ If you called your config file `foo.yml` you have to invoke the
 script with
 
 ```
-./gitsync.py -c foo.yml```
+./gitsync.py -c foo.yml
+```
 
 Note that by default, the script will look for a file named `git.yml`
 You should have the following output :
+
 ```
 Syncing https://github.com/svartbergtroll/heimdall:master
  + Destination directory non existant, creating it
@@ -114,6 +116,9 @@ It worked !
 
 You can now have all the repos you want kept under branch 
 version control.
+
+## How do I use that in production ?
+Just create a cron file that calls the script whenever you want it to be run.
 
 ## Advanced configuration
 ### Scenario
@@ -190,11 +195,25 @@ Note that:
 * The complexe shell things like pipes and substitutions are not supported
 * Some placeholders like `{destination}`, `{branch}` and `{commit}` are available.
 
-## How do I use that in production ?
-
-Just create a cron file that calls the script whenever you want it to be run.
-
 ## Todo
 * Enhance documentation for the hooks
 * Create more placeholders
 * Create a proper logging system (currently stdout)
+
+## License
+```
+           Copyright 2015 Thomas Maurice <thomas@maurice.fr>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```
