@@ -229,8 +229,29 @@ a message will be printed out.
 
 Example: `kill: /home/thomas/app/run/app.pid`
 
-### Environment
-An environment variable is generated into the hooks, allowing you to perform substitutions
+### Passing environment varables to `run` commands
+You can pass environment variables to the run commands. To do so you have to declare
+a dictionary into the `branchname` node of the yaml document, for instance :
+
+```yaml
+repositories:
+    myapp:
+        url: https://github.com/myuser/myapp
+        branches:
+            production:
+                destination: /home/app/myapp
+                # And here you go !
+                environment:
+                    DJANGO_SETTINGS_MODULE: myapp.settings_prod
+                post_clone:
+                    # Some commands than can use DJANGO_SETTINGS_MODULE
+                post_update:
+                    # Some more commands
+
+```
+
+### Substitutions
+A set of "substitutions variables" is generated into the hooks, allowing you to perform substitutions
 within your commandlines. As you might have seen into the previous examples the `{destination}`
 one for example, you just have to put it into curly brackets to make the substitution happen.
 The following list applies :
@@ -248,9 +269,10 @@ Note that all the command ran into a hook are ran into the `destination` directo
 so if you wish you may want to use relative pathes.
 
 ## Todo
-* Enhance documentation for the hooks
-* Create more placeholders
-* Create a proper logging system (currently stdout)
+
+- [X] Enhance documentation for the hooks
+- [ ] Create more placeholders
+- [X] Create a proper logging system (currently stdout)
 
 ## License
 ```

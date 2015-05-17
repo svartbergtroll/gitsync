@@ -276,8 +276,11 @@ class Repository(object):
             if ac_type == "run":
                 command = shlex.split(action)
 
+                local_env = self.repo_dict['branches'][env['branch']]['environment']
                 process = Popen(command, stdout=PIPE, stderr=PIPE,
-                    shell=False, cwd=env['destination'])
+                    shell=False, cwd=env['destination'],
+                    env=dict(os.environ, **local_env)
+                )
                 
                 while process.poll() == None:
                     time.sleep(0.1)
