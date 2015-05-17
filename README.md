@@ -195,6 +195,39 @@ Note that:
 * The complexe shell things like pipes and substitutions are not supported
 * Some placeholders like `{destination}`, `{branch}` and `{commit}` are available.
 
+## Hooks documentation
+### run
+The `run` keyword allows you to run specific commands. Note that it does not provide
+advanced shell fonctionalities such as pipe, redirect and so on, the run command
+must be used to run one and only one unix program.
+
+Example: `run: echo test`
+
+### kill
+The `kill` command is used to kill the process of which the PID is stored into a
+pidfile. Note that if the pidfile does not exist, or the process is already dead,
+a message will be printed out.
+
+Example: `kill: /home/thomas/app/run/app.pid`
+
+### Environment
+An environment variable is generated into the hooks, allowing you to perform substitutions
+within your commandlines. As you might have seen into the previous examples the `{destination}`
+one for example, you just have to put it into curly brackets to make the substitution happen.
+The following list applies :
+
+|     Name      |                    Description                  | Availability   |
+|---------------|-------------------------------------------------|----------------|
+| `destination` | Destination folder for the repo                 | Everywhere     |
+| `commit`      | SHA1 of the current commit                      | Everywhere     |
+| `branch`      | Current branch's name                           | Everywhere     |
+
+Obviously more are to come.
+
+### Additional information
+Note that all the command ran into a hook are ran into the `destination` directory
+so if you wish you may want to use relative pathes.
+
 ## Todo
 * Enhance documentation for the hooks
 * Create more placeholders
