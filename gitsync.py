@@ -38,7 +38,6 @@ import os
 import git
 import shlex
 import signal
-import pwd
 import time
 from subprocess import Popen, PIPE
 from docopt import docopt
@@ -138,7 +137,6 @@ class Repository(object):
         print "  * Remote is at %s" % remote_ref.hexsha[:10]
         
         # We want to keep our repositories clean
-        # TODO : Remove untracked files ?
         if repo.is_dirty():
             print "  - Local copy has changes, discarding them"
             try:
@@ -152,7 +150,9 @@ class Repository(object):
             print "  * Local copy is out of date, pulling latest"
             try:
                 repo.remotes.origin.pull()
-                repo.head.reset(index=True, working_tree=True, commit=remote_ref)
+                repo.head.reset(index=True,
+                    working_tree=True,
+                    commit=remote_ref)
                 self.run_post_update(branch, remote_ref)
             except Exception as exce:
                 print "  ! Pull of remote copy failed : %s" % str(exce)
@@ -223,28 +223,32 @@ class Repository(object):
         """
         try:
             ac_type = action.keys()[0].format(**env)
-            ac = action.values()[0].format(**env)
-            print "  - Running action '%s %s'" % (ac_type, ac)
+            action = action.values()[0].format(**env)
+            print "  - Running action '%s %s'" % (ac_type, action)
             
             # If the user wants to run a command
             if ac_type == "run":
-                command = shlex.split(ac)
+                command = shlex.split(action)
 
-                p = Popen(command, stdout=PIPE, stderr=PIPE,
+                process = Popen(command, stdout=PIPE, stderr=PIPE,
                     shell=False, cwd=env['destination'])
                 
-                while p.poll() == None:
+                while process.poll() == None:
                     time.sleep(0.1)
-                    output = p.stdout.readlines()
+                    output = process.stdout.readlines()
                     
-                    for l in output:
-                        print "    run:", l.replace('\n', '')
+                    for line in output:
+                        print "    run:", line.replace('\n', '')
 
             # If the user wants to kill a PID retrieved from a pidfile
             elif ac_type == "kill":
-                if ac[0] != '/':
-                    ac = "{dest}/{ac}".format(dest=env['destination'], ac=ac)
-                pidfile = open(ac, 'r')
+                pid_file_dest = action
+                if pid_file_dest[0] != '/':
+                    pid_file_dest = "{dest}/{pid_file_dest}".format(
+                        dest=env['destination'],
+                        pid_file_dest=pid_file_dest
+                    )
+                pidfile = open(pid_file_dest, 'r')
                 pid = int(pidfile.read())
                 pidfile.close()
                 try:
@@ -282,8 +286,6 @@ if __name__ == "__main__":
     # pylint: disable=invalid-name
     args = docopt(__help__)
     config = {}
-    # To be sure to have rights. Otherwise Git could complain
-    os.chdir('/tmp')
     try:
         print " - Parsing configuration file %s" % (args['--config'])
         conf_file = open(args['--config'], 'r')
@@ -294,6 +296,9 @@ if __name__ == "__main__":
         raise SystemExit(1)
     except Exception as exce:
         print " ! Error while parsing config:", str(exce)
+    
+    # To be sure to have rights. Otherwise Git could complain
+    os.chdir('/tmp')
     
     repositories = config['repositories']
     for r in repositories:

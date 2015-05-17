@@ -102,7 +102,7 @@ Note that by default, the script will look for a file named `git.yml`
 You should have the following output :
 
 ```
-Syncing https://github.com/svartbergtroll/heimdall:master
+Syncing https://github.com/thomas-maurice/heimdall:master
  + Destination directory non existant, creating it
  + Cloning the repository
  + Fetching update information
