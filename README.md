@@ -13,10 +13,12 @@ A simple script to synchronize Git repositories
 gitsync.py: Synchronizes git repositories
 
 Usage:
-    gitsync.py [--config FILE]
+    gitsync.py [--config FILE] [--log FILE]
 
 Options:
     -c --config FILE        configuration file to use [default: git.yml]
+    -l --log FILE           logs to this file, overrides the setting of
+                            the yaml file
     -h --help               prints out this help
 ```
 
@@ -51,6 +53,7 @@ And here it was born.
 * Keep track of several repos, and several branches of these
   repos
 * Keep the configuration simple using one [yaml](http://yaml.org) file
+* Logging
 
 Also more advanced features such as :
 * Hooks ! (see advanced configuration)
@@ -68,6 +71,11 @@ Configuration is achieved with a Yaml file, which format is as
 follows :
 
 ```yaml
+# Do we print stuff to stdout ?
+log_stdout: yes
+# Do we use a logfile ?
+# Note that to disable logging to a file, just remove this option
+log_file: /tmp/gitsync.log
 # You have to declare everything into this root element
 repositories:
     # Here we have a repo named "heimdall"
@@ -102,20 +110,31 @@ Note that by default, the script will look for a file named `git.yml`
 You should have the following output :
 
 ```
-Syncing https://github.com/thomas-maurice/heimdall:master
- + Destination directory non existant, creating it
- + Cloning the repository
- + Fetching update information
- * Remote is at 350230004a
- * Local copy is in sync at 350230004a
- * Cloned from 350230004a (Merge branch 'master' of svartbergtroll.fr:heimdall)
-
+2015-05-17 13:11:54,890 INFO:  - Parsing configuration file git.yml
+2015-05-17 13:11:54,895 INFO:  * Cloning heimdall:master
+2015-05-17 13:11:54,895 INFO:   + Destination directory non existant, creating it
+2015-05-17 13:11:54,895 INFO:   + Cloning the repository in /home/thomas/repos/master
+2015-05-17 13:11:56,351 INFO:   * Local copy at revision 350230004a
 ```
 
 It worked !
 
 You can now have all the repos you want kept under branch 
 version control.
+
+## Using the logging system
+You can also log what happens to keep track of the process. The logging system
+is controlled by two options `log_stdout` and `log_file`. If you want information
+to be printed out to *stdout*, just set the value to `yes` (resp `no` to disable). For
+the log file, if you want to enable it put the path of the file to use as a log file,
+just comment out the option to disable it !
+
+Defaults:
+* `log_stdout`: `yes`
+* `log_file`: `null`
+
+Additionally you can use the `--log FILE` commandline switch to log temporarily
+the output of the script to a file, without generalizing the setting to the configuration.
 
 ## How do I use that in production ?
 Just create a cron file that calls the script whenever you want it to be run.
